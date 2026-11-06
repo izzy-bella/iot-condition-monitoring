@@ -11,7 +11,9 @@ traced to sensor evidence and configuration.
 ## Acquisition and processing sequence
 
 1. `SensorAcquisition` reads the working DS18B20 1-Wire path, INA226 at I2C
-   address `0x41`, and the ADXL345 over SPI bus 0/device 0 independently.
+   address `0x41`, and the ADXL345 over SPI bus 0/device 0 independently. A UTC
+   timestamp is captured immediately after every successful DS18B20 read for
+   the independent raw-temperature record.
 2. A failed sensor produces a named error while successful sensor readings are
    preserved. No numeric substitute is generated.
 3. The ADXL345 uses the supplied mode-3, 2 MHz SPI commands, full-resolution
@@ -37,7 +39,11 @@ traced to sensor evidence and configuration.
 10. `FaultEventTracker` writes lifecycle transitions to SQLite only when a fault
     starts, materially changes or resolves.
 11. The same immutable completed telemetry object is published concurrently to
-    Azure IoT Hub and a local or cloud-accessible InfluxDB endpoint.
+    Azure IoT Hub and a local or cloud-accessible InfluxDB endpoint. InfluxDB
+    writes the combined `fan_condition` point plus raw vibration and event data
+    as its main batch, then uses the same client for a separately guarded
+    `fan_temperature_raw` point. A raw-temperature failure cannot block or undo
+    the main batch or the independent Azure publish.
 
 ## Continuous timing
 

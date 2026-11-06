@@ -18,6 +18,7 @@ class TelemetryReading:
     observed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     temperature_c: Optional[float] = None
+    temperature_observed_at: Optional[datetime] = field(default=None, repr=False)
     voltage_v: Optional[float] = None
     current_a: Optional[float] = None
     power_w: Optional[float] = None
@@ -72,6 +73,13 @@ class TelemetryReading:
             raise ValueError("device_id must not be empty")
         if self.observed_at.tzinfo is None:
             raise ValueError("observed_at must include timezone information")
+        if (
+            self.temperature_observed_at is not None
+            and self.temperature_observed_at.tzinfo is None
+        ):
+            raise ValueError(
+                "temperature_observed_at must include timezone information"
+            )
 
         for name, value in self._numeric_payload().items():
             if value is not None and not math.isfinite(float(value)):

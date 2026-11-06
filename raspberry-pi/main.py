@@ -62,6 +62,7 @@ def build_publishers(
                     bucket=env.get("INFLUXDB_BUCKET", ""),
                     measurement=env.get("INFLUXDB_MEASUREMENT", "fan_condition"),
                     timeout_ms=int(env.get("INFLUXDB_TIMEOUT_MS", "5000")),
+                    logger=LOGGER,
                 )
             )
         except Exception as exc:

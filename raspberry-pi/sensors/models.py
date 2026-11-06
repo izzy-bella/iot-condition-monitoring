@@ -32,6 +32,7 @@ class SensorSnapshot:
     device_id: str
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     temperature_c: Optional[float] = None
+    temperature_observed_at: Optional[datetime] = None
     electrical: Optional[ElectricalReading] = None
     acceleration: Optional[AccelerometerWindow] = None
     errors: Dict[str, str] = field(default_factory=dict)

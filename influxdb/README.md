@@ -23,6 +23,21 @@ One point per completed monitoring cycle.
 
 Unavailable values are omitted, never filled with zero.
 
+## `fan_temperature_raw`
+
+One point per successful real DS18B20 read. This preserves the original thermal
+observation independently of the completed condition-monitoring cycle.
+
+- tag: `deviceId` (normally `fan-monitor-pi`)
+- field: `temperature_C`
+- timestamp: UTC timestamp captured immediately after the DS18B20 read
+
+`temperature_C` is intentionally also retained in `fan_condition`. The raw
+temperature point and the main batch share one InfluxDB client/write API, but
+the temperature call is separately guarded. A `fan_temperature_raw` failure is
+logged and cannot fail the already-written `fan_condition`,
+`fan_vibration_raw`, or `fan_condition_events` records.
+
 ## `fan_vibration_raw`
 
 One point per real ADXL sample, sharing the original sample timestamp.
@@ -42,6 +57,7 @@ Written only for STARTED and RESOLVED transitions.
   maintenance priority, recommended action, start and resolution timestamps
 
 The dashboards query `fan_condition` for latest values/trends,
+`fan_temperature_raw` for original DS18B20 observations,
 `fan_vibration_raw` for directional vibration and `fan_condition_events` for
 history.
 

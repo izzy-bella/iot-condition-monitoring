@@ -87,6 +87,7 @@ class DiagnosticPipeline:
             device_id=snapshot.device_id,
             observed_at=snapshot.timestamp,
             temperature_c=snapshot.temperature_c,
+            temperature_observed_at=snapshot.temperature_observed_at,
             voltage_v=electrical.voltage_v if electrical else None,
             current_a=electrical.current_a if electrical else None,
             power_w=electrical.power_w if electrical else None,

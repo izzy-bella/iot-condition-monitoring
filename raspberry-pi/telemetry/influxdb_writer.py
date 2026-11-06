@@ -1,5 +1,6 @@
-"""InfluxDB destination adapter for summary, raw vibration and event data."""
+"""InfluxDB adapter for summary, raw sensor and event data."""
 
+import logging
 from typing import Any, Optional
 
 from .models import TelemetryReading
@@ -18,6 +19,7 @@ class InfluxDBWriter:
         bucket: str,
         measurement: str = "fan_condition",
         timeout_ms: int = 5000,
+        logger: Optional[logging.Logger] = None,
     ) -> None:
         required = {
             "INFLUXDB_URL": url,
@@ -39,6 +41,7 @@ class InfluxDBWriter:
         self._bucket = bucket
         self._measurement = measurement
         self._timeout_ms = timeout_ms
+        self._logger = logger or logging.getLogger(__name__)
         self._client: Optional[Any] = None
         self._write_api: Optional[Any] = None
         self._point_class: Optional[Any] = None
@@ -110,7 +113,44 @@ class InfluxDBWriter:
                     event_point = event_point.field(field_name, field_value)
             records.append(event_point.time(reading.observed_at, self._write_precision))
 
-        self._write_api.write(bucket=self._bucket, org=self._org, record=records)
+        primary_error: Optional[Exception] = None
+        try:
+            self._write_api.write(
+                bucket=self._bucket,
+                org=self._org,
+                record=records,
+            )
+        except Exception as exc:
+            primary_error = exc
+
+        # Keep the raw DS18B20 observation in its own measurement, but use the
+        # same client/write API. This separately guarded call means a failure
+        # cannot invalidate the already-written condition, vibration or event
+        # batch, nor escape to the Azure/InfluxDB fan-out layer.
+        if (
+            reading.temperature_c is not None
+            and reading.temperature_observed_at is not None
+        ):
+            temperature_point = (
+                self._point_class("fan_temperature_raw")
+                .tag("deviceId", reading.device_id)
+                .field("temperature_C", float(reading.temperature_c))
+                .time(reading.temperature_observed_at, self._write_precision)
+            )
+            try:
+                self._write_api.write(
+                    bucket=self._bucket,
+                    org=self._org,
+                    record=temperature_point,
+                )
+            except Exception as exc:
+                self._logger.error(
+                    "fan_temperature_raw write failed; other telemetry was preserved: %s",
+                    exc,
+                )
+
+        if primary_error is not None:
+            raise primary_error
 
     def close(self) -> None:
         try:

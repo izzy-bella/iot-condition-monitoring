@@ -30,6 +30,7 @@ class SensorAcquisition:
     def acquire(self) -> SensorSnapshot:
         errors = dict(self._startup_errors)
         temperature_c: Optional[float] = None
+        temperature_observed_at: Optional[datetime] = None
         electrical: Optional[ElectricalReading] = None
         acceleration: Optional[AccelerometerWindow] = None
 
@@ -38,6 +39,7 @@ class SensorAcquisition:
                 temperature_c = float(
                     self._temperature_sensor.read_temperature_c()
                 )
+                temperature_observed_at = datetime.now(timezone.utc)
             except Exception as exc:
                 errors["temperature"] = str(exc)
 
@@ -57,6 +59,7 @@ class SensorAcquisition:
             device_id=self._device_id,
             timestamp=datetime.now(timezone.utc),
             temperature_c=temperature_c,
+            temperature_observed_at=temperature_observed_at,
             electrical=electrical,
             acceleration=acceleration,
             errors=errors,

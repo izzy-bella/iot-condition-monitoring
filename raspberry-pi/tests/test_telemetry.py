@@ -25,6 +25,7 @@ from diagnostics.condition_evaluator import (  # noqa: E402
     ConditionStatus,
 )
 from processing.vibration import calculate_vibration_features  # noqa: E402
+from sensors.acquisition import SensorAcquisition  # noqa: E402
 from sensors.adxl345 import ADXL345Sensor  # noqa: E402
 from sensors.ina226 import INA226Sensor  # noqa: E402
 from sensors.models import (  # noqa: E402
@@ -34,6 +35,7 @@ from sensors.models import (  # noqa: E402
     SensorSnapshot,
 )
 from storage.event_history import FaultEventTracker  # noqa: E402
+from telemetry.influxdb_writer import InfluxDBWriter  # noqa: E402
 
 
 class RecordingPublisher:
@@ -99,6 +101,118 @@ class TelemetryReadingTests(unittest.TestCase):
         self.assertEqual(payload["rpm"], 6102.0)
         self.assertEqual(payload["blade_pass_frequency_Hz"], 711.9)
         self.assertEqual(payload["dominant_frequency_Hz"], 711.9)
+
+    def test_temperature_observation_timestamp_must_be_timezone_aware(self) -> None:
+        with self.assertRaises(ValueError):
+            TelemetryReading(
+                device_id="fan-monitor-pi",
+                temperature_c=19.0,
+                temperature_observed_at=datetime(2026, 1, 1),
+            )
+
+
+class TemperatureAcquisitionTests(unittest.TestCase):
+    def test_successful_ds18b20_read_records_its_own_timestamp(self) -> None:
+        class FakeTemperatureSensor:
+            @staticmethod
+            def read_temperature_c():
+                return 19.25
+
+        before = datetime.now(timezone.utc)
+        snapshot = SensorAcquisition(
+            device_id="fan-monitor-pi",
+            temperature_sensor=FakeTemperatureSensor(),
+            electrical_sensor=None,
+            accelerometer=None,
+        ).acquire()
+        after = datetime.now(timezone.utc)
+
+        self.assertEqual(snapshot.temperature_c, 19.25)
+        self.assertIsNotNone(snapshot.temperature_observed_at)
+        self.assertLessEqual(before, snapshot.temperature_observed_at)
+        self.assertLessEqual(snapshot.temperature_observed_at, snapshot.timestamp)
+        self.assertLessEqual(snapshot.timestamp, after)
+
+
+class InfluxDBWriterTests(unittest.TestCase):
+    class FakePoint:
+        def __init__(self, measurement):
+            self.measurement = measurement
+            self.tags = {}
+            self.fields = {}
+            self.timestamp = None
+
+        def tag(self, name, value):
+            self.tags[name] = value
+            return self
+
+        def field(self, name, value):
+            self.fields[name] = value
+            return self
+
+        def time(self, timestamp, _precision):
+            self.timestamp = timestamp
+            return self
+
+    class FailingTemperatureWriteApi:
+        def __init__(self):
+            self.calls = []
+
+        def write(self, bucket, org, record):
+            self.calls.append((bucket, org, record))
+            if len(self.calls) == 2:
+                raise RuntimeError("temperature measurement unavailable")
+
+    def test_raw_temperature_uses_sensor_time_and_failure_is_isolated(self) -> None:
+        cycle_time = datetime(2026, 1, 1, 0, 0, 2, tzinfo=timezone.utc)
+        sensor_time = datetime(2026, 1, 1, 0, 0, 1, tzinfo=timezone.utc)
+        vibration_time = datetime(2026, 1, 1, 0, 0, 1, 500000, tzinfo=timezone.utc)
+        reading = TelemetryReading(
+            device_id="fan-monitor-pi",
+            observed_at=cycle_time,
+            temperature_c=19.25,
+            temperature_observed_at=sensor_time,
+            raw_acceleration_samples=(
+                RawAccelerationSample(vibration_time, 0.1, 0.2, 1.0),
+            ),
+            event_transitions=(
+                {
+                    "event_id": "event-1",
+                    "event_state": "STARTED",
+                    "condition": "WARNING",
+                },
+            ),
+        )
+        write_api = self.FailingTemperatureWriteApi()
+        logger = mock.Mock()
+        writer = InfluxDBWriter(
+            url="https://example.invalid",
+            token="placeholder",
+            org="test-org",
+            bucket="test-bucket",
+            logger=logger,
+        )
+        writer._client = object()
+        writer._write_api = write_api
+        writer._point_class = self.FakePoint
+        writer._write_precision = "ns"
+
+        writer.publish(reading)
+
+        self.assertEqual(len(write_api.calls), 2)
+        primary_records = write_api.calls[0][2]
+        self.assertEqual(
+            [point.measurement for point in primary_records],
+            ["fan_condition", "fan_vibration_raw", "fan_condition_events"],
+        )
+        self.assertEqual(primary_records[0].fields["temperature_C"], 19.25)
+
+        temperature_point = write_api.calls[1][2]
+        self.assertEqual(temperature_point.measurement, "fan_temperature_raw")
+        self.assertEqual(temperature_point.tags, {"deviceId": "fan-monitor-pi"})
+        self.assertEqual(temperature_point.fields, {"temperature_C": 19.25})
+        self.assertEqual(temperature_point.timestamp, sensor_time)
+        logger.error.assert_called_once()
 
 
 class TelemetryFanoutTests(unittest.TestCase):

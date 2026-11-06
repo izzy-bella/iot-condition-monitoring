@@ -20,7 +20,8 @@ to Azure IoT Hub and InfluxDB independently.
 - `diagnostics/pipeline.py` — assembles the complete monitoring telemetry
 - `storage/event_history.py` — SQLite STARTED/RESOLVED event lifecycle
 - `telemetry/azure_iot.py` — Azure IoT Hub adapter
-- `telemetry/influxdb_writer.py` — summary, raw vibration and event writes
+- `telemetry/influxdb_writer.py` — summary, raw temperature, raw vibration and
+  event writes through one InfluxDB client
 - `telemetry/fanout.py` — concurrent failure-isolated destination delivery
 - `systemd/*.example` — future service template; not installed or enabled
 
@@ -66,8 +67,15 @@ InfluxDB uses `INFLUXDB_URL`, `INFLUXDB_ORG`, `INFLUXDB_BUCKET` and
 `INFLUXDB_TOKEN`. Summary telemetry is written to the `fan_condition`
 measurement by default, tagged by `deviceId`, at the real observation timestamp.
 The complete available summary payload is written as fields; unavailable sensor
-values remain absent. Raw acceleration windows and fault lifecycle transitions
-remain in their dedicated measurements.
+values remain absent. Every successful DS18B20 read is also written to
+`fan_temperature_raw` with its sensor-read timestamp, while `temperature_C`
+remains in the combined `fan_condition` point. Raw acceleration windows and
+fault lifecycle transitions remain in their dedicated measurements.
+
+The condition/vibration/event batch and raw temperature point use the same
+InfluxDB client and write API. The raw temperature call is separately guarded:
+if it fails, the failure is logged without failing the already-written main
+batch or the independent Azure delivery.
 
 Both outputs default to enabled. Invalid setup for one adapter is logged without
 preventing the other from starting. During a cycle, the same immutable reading
@@ -100,7 +108,8 @@ installed or enabled.
 
 ## Tests
 
-The current tests cover the proven SPI and INA226 calculations, payload schema,
+The current tests cover the proven SPI and INA226 calculations, DS18B20
+observation timestamps, raw-temperature write isolation, payload schema,
 destination isolation, FFT/shaft/RPM/BPF extraction, threshold boundaries,
 stale status and event de-duplication. Install the declared runtime dependencies
 before running them on a clean machine:
