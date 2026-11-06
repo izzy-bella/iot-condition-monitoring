@@ -1,0 +1,20 @@
+# Example only: copy this file into Grafana's datasource provisioning directory
+# after replacing every placeholder.
+# Keep credentials out of source control; Grafana expands environment variables at startup.
+apiVersion: 1
+
+datasources:
+  - name: IIoT InfluxDB
+    uid: iiot-influxdb
+    type: influxdb
+    access: proxy
+    url: ${INFLUXDB_URL}
+    isDefault: false
+    editable: true
+    jsonData:
+      version: SQL
+      dbName: ${INFLUXDB_BUCKET}
+      httpMode: POST
+      insecureGrpc: false
+    secureJsonData:
+      token: ${INFLUXDB_GRAFANA_READ_TOKEN}

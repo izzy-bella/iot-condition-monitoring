@@ -1,0 +1,17 @@
+[Unit]
+Description=Fan Condition Monitoring IIoT Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=isabella
+WorkingDirectory=/opt/iot-condition-monitoring/raspberry-pi
+EnvironmentFile=/home/isabella/.env
+ExecStart=/opt/iot-condition-monitoring/.venv/bin/python main.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

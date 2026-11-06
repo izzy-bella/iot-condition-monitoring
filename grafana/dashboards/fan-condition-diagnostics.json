@@ -1,0 +1,273 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(255, 179, 0, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Live vibration processing, transparent fault diagnosis, FMECA risk assessment and fault history.",
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Main condition dashboard",
+      "tooltip": "Return to the live landing screen",
+      "type": "link",
+      "url": "/d/fan-condition-monitoring"
+    }
+  ],
+  "liveNow": true,
+  "panels": [
+    {
+      "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "content": "# Vibration, Diagnostics & FMECA\nLive explainable condition assessment for `${device_id}`",
+        "mode": "markdown"
+      },
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Application-calculated status for the configured vibration RMS thresholds. UNCONFIGURED is expected until baseline limits are entered.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [
+            {"options": {"-2": {"color": "dark-red", "index": 4, "text": "NO SENSOR DATA"}, "-1": {"color": "blue", "index": 3, "text": "THRESHOLDS UNCONFIGURED"}, "0": {"color": "green", "index": 0, "text": "NORMAL"}, "1": {"color": "yellow", "index": 1, "text": "WARNING"}, "2": {"color": "red", "index": 2, "text": "CRITICAL"}}, "type": "value"}
+          ],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "dark-red", "value": null}, {"color": "blue", "value": -1}, {"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "red", "value": 2}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 2},
+      "id": 2,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name", "wideLayout": true},
+      "targets": [
+        {"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"vibration_rms_status_code\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"vibration_rms_status_code\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}
+      ],
+      "title": "Vibration Condition Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "RMS of the detrended resultant acceleration over the configured sample window.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 4, "min": 0, "unit": "accG"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 6},
+      "id": 3,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"vibration_rms_g\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"vibration_rms_g\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration RMS",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Largest absolute detrended resultant acceleration in the current sample window.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 4, "min": 0, "unit": "accG"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 6},
+      "id": 4,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"vibration_peak_g\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"vibration_peak_g\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration Peak",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Shows sudden vibration peaks or shocks. Internal field: crest_factor.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 2, "min": 0, "unit": "none"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 6},
+      "id": 5,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"crest_factor\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"crest_factor\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration Spike Level",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Shows unusual impact-type or rough vibration. Internal field: kurtosis.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 2, "min": 0, "unit": "none"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 6},
+      "id": 6,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"kurtosis\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"kurtosis\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration Impact Level",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Strongest non-DC spectral bin from the Hann-windowed resultant acceleration signal.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 1, "min": 0, "unit": "hertz"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 11},
+      "id": 7,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"dominant_frequency_Hz\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"dominant_frequency_Hz\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Dominant Frequency",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Estimated rotational frequency selected in the configured shaft search band and validated against the seven-blade blade-pass region.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 2, "min": 0, "unit": "hertz"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 11},
+      "id": 18,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"shaft_frequency_Hz\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"shaft_frequency_Hz\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Shaft Frequency",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Estimated fan speed calculated as shaft frequency multiplied by 60.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 0, "min": 0, "unit": "rotrpm"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 11},
+      "id": 19,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"rpm\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"rpm\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Estimated RPM",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Detected spectral peak near the expected seven-blade blade-pass frequency.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 2, "min": 0, "unit": "hertz"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 11},
+      "id": 20,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"blade_pass_frequency_Hz\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"blade_pass_frequency_Hz\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Blade-Pass Frequency",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Raw acceleration by sensor direction from fan_vibration_raw.",
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 2, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}}, "unit": "accG"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "id": 8,
+      "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT $__dateBin(time) AS time, avg(\"accel_x_g\") AS \"accel_x_g\", avg(\"accel_y_g\") AS \"accel_y_g\", avg(\"accel_z_g\") AS \"accel_z_g\" FROM \"fan_vibration_raw\" WHERE \"deviceId\" = '${device_id}' AND $__timeFilter(time) GROUP BY $__dateBin(time) ORDER BY time", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration by Direction (XYZ)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Historical windowed RMS and peak vibration features.",
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 3, "showPoints": "auto", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}}, "unit": "accG"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "id": 9,
+      "options": {"legend": {"calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "none"}},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"vibration_rms_g\", \"vibration_peak_g\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND $__timeFilter(time) ORDER BY time", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Vibration Feature Trends",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 2, "w": 24, "x": 0, "y": 24},
+      "id": 10,
+      "options": {"content": "## Diagnostic & Maintenance Decision Support\nTransparent rules and configurable development FMECA values—possible faults are not confirmations.", "mode": "markdown"},
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [{"options": {"0": {"color": "green", "index": 0, "text": "NORMAL"}, "1": {"color": "yellow", "index": 1, "text": "WARNING"}, "2": {"color": "red", "index": 2, "text": "CRITICAL"}, "3": {"color": "dark-red", "index": 3, "text": "OFFLINE"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 2}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 5, "x": 0, "y": 26},
+      "id": 11,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"condition_code\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"condition_code\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Current Condition",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "fieldConfig": {"defaults": {"color": {"fixedColor": "orange", "mode": "fixed"}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 7, "x": 5, "y": 26},
+      "id": 12,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"suspected_fault\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"suspected_fault\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Possible Fault",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "fieldConfig": {"defaults": {"color": {"fixedColor": "text", "mode": "fixed"}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 12, "x": 12, "y": 26},
+      "id": 13,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"diagnostic_evidence\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"diagnostic_evidence\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Why This Was Detected / Diagnostic Evidence",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Latest development FMECA values calculated from Severity × Occurrence × Detectability.",
+      "fieldConfig": {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}, "footer": {"reducers": []}, "inspect": false}}, "overrides": []},
+      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 31},
+      "id": 14,
+      "options": {"cellHeight": "sm", "showHeader": true, "sortBy": []},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"suspected_fault\", \"fmeca_severity\", \"fmeca_occurrence\", \"fmeca_detectability\", \"fmeca_rpn\", \"maintenance_priority\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "table"}],
+      "title": "FMECA (Risk Assessment)",
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 0, "min": 0, "unit": "none"}, "overrides": []},
+      "gridPos": {"h": 7, "w": 4, "x": 12, "y": 31},
+      "id": 15,
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"fmeca_rpn\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"fmeca_rpn\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "RPN",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "fieldConfig": {"defaults": {"color": {"fixedColor": "orange", "mode": "fixed"}}, "overrides": []},
+      "gridPos": {"h": 7, "w": 8, "x": 16, "y": 31},
+      "id": 16,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name"},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"maintenance_priority\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 seconds' AND \"maintenance_priority\" IS NOT NULL ORDER BY time DESC LIMIT 1", "rawQuery": true, "refId": "A", "resultFormat": "time_series"}],
+      "title": "Maintenance Priority",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "influxdb", "uid": "iiot-influxdb"},
+      "description": "Transition-based history: STARTED and RESOLVED records only; persistent conditions are not duplicated every cycle.",
+      "fieldConfig": {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}, "footer": {"reducers": []}, "inspect": false}}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 38},
+      "id": 17,
+      "options": {"cellHeight": "sm", "showHeader": true, "sortBy": [{"desc": true, "displayName": "Time"}]},
+      "targets": [{"datasource": {"type": "influxdb", "uid": "iiot-influxdb"}, "query": "SELECT time, \"event_id\", \"event_state\", \"condition\", \"suspected_fault\", \"diagnostic_evidence\", \"severity\", \"fmeca_rpn\", \"maintenance_priority\", \"recommended_action\", \"started_at\", \"resolved_at\" FROM \"fan_condition_events\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 days' ORDER BY time DESC LIMIT 100", "rawQuery": true, "refId": "A", "resultFormat": "table"}],
+      "title": "Fault History",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["iiot", "vibration", "diagnostics", "fmeca", "fan"],
+  "templating": {
+    "list": [
+      {"current": {"selected": true, "text": "fan-monitor-pi", "value": "fan-monitor-pi"}, "description": "Monitored Raspberry Pi device identifier.", "hide": 0, "includeAll": false, "label": "Device", "multi": false, "name": "device_id", "options": [{"selected": true, "text": "fan-monitor-pi", "value": "fan-monitor-pi"}], "query": "fan-monitor-pi", "skipUrlSync": false, "type": "custom"}
+    ]
+  },
+  "time": {"from": "now-15m", "to": "now"},
+  "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m"], "time_options": ["5m", "15m", "30m", "1h", "6h", "12h", "24h", "7d", "30d"]},
+  "timezone": "browser",
+  "title": "Fan Vibration, Diagnostics & FMECA",
+  "uid": "fan-condition-diagnostics",
+  "version": 2,
+  "weekStart": ""
+}

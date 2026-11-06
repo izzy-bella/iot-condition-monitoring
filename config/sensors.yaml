@@ -1,0 +1,33 @@
+# Values below preserve the supplied working Raspberry Pi hardware script.
+# Reconfirm them if wiring, sensor board, fan, or shunt hardware changes.
+fan_expected_running: true
+number_of_blades: 7
+
+ds18b20:
+  enabled: true
+  device_glob: /sys/bus/w1/devices/28-00001132b5a2/w1_slave
+  crc_retries: 3
+
+ina226:
+  enabled: true
+  i2c_bus: 1
+  address: 0x41
+  shunt_resistance_ohm: 0.005
+
+accelerometer:
+  enabled: true
+  model: ADXL345
+  interface: SPI
+  spi_bus: 0
+  spi_device: 0
+  spi_speed_Hz: 2000000
+  spi_mode: 3
+  # Previously measured approximate acquisition rate. Actual rate is measured
+  # for every window and is used for FFT frequency bins.
+  sample_rate_Hz: 3280
+  output_data_rate_Hz: 3200
+  window_seconds: 1.0
+  range_g: 16
+  shaft_search_low_Hz: 80
+  shaft_search_high_Hz: 120
+  blade_pass_tolerance_Hz: 15

@@ -1,0 +1,1512 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(255, 179, 0, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Live fan condition monitoring, vibration diagnostics, FMECA and maintenance decision support from InfluxDB telemetry.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Vibration, Diagnostics & FMECA",
+      "tooltip": "Open detailed vibration and maintenance decision support",
+      "type": "link",
+      "url": "/d/fan-condition-diagnostics"
+    }
+  ],
+  "liveNow": true,
+  "panels": [
+    {
+      "description": "Dashboard identity block. Grafana's native time picker and refresh control remain available in the dashboard toolbar.",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Fan Condition Monitoring Dashboard\nLive IIoT Monitoring System",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.0.0",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Live system status with a 30-second stale-data override. Missing telemetry can never be displayed as healthy.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "state"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "System Status"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "-1": {
+                        "color": "dark-red",
+                        "index": 4,
+                        "text": "OFFLINE / NO DATA"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "color": "dark-red",
+                        "index": 3,
+                        "text": "NO DATA"
+                      }
+                    },
+                    "type": "special"
+                  },
+                  {
+                    "options": {
+                      "from": 0,
+                      "result": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "CRITICAL"
+                      },
+                      "to": 49.999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 50,
+                      "result": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "WARNING"
+                      },
+                      "to": 79.999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 80,
+                      "result": {
+                        "color": "green",
+                        "index": 2,
+                        "text": "NORMAL"
+                      },
+                      "to": 100
+                    },
+                    "type": "range"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "explanation"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Condition summary"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "-1": {
+                        "color": "dark-red",
+                        "index": 3,
+                        "text": "No recent telemetry received. Check Raspberry Pi, sensors and network connection."
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "from": 0,
+                      "result": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical condition detected. Stop and inspect the system."
+                      },
+                      "to": 49.999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 50,
+                      "result": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Operating limits are being approached. Investigation recommended."
+                      },
+                      "to": 79.999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": 80,
+                      "result": {
+                        "color": "green",
+                        "index": 2,
+                        "text": "Fan operating within normal limits. No active issues."
+                      },
+                      "to": 100
+                    },
+                    "type": "range"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "WITH latest AS (\n  SELECT time, \"condition_status\"\n  FROM \"fan_condition\"\n  WHERE \"deviceId\" = '${device_id}'\n  ORDER BY time DESC\n  LIMIT 1\n), scored AS (\n  SELECT time,\n    CASE\n      WHEN time < now() - INTERVAL '${stale_timeout_seconds} seconds' THEN -1.0\n      WHEN \"condition_status\" = 'NORMAL' THEN 92.0\n      WHEN \"condition_status\" = 'WARNING' THEN 65.0\n      WHEN \"condition_status\" = 'CRITICAL' THEN 25.0\n      ELSE -1.0\n    END AS state\n  FROM latest\n)\nSELECT time, state, state AS explanation FROM scored\nUNION ALL\nSELECT TIMESTAMP '1970-01-01 00:00:00', -1.0, -1.0\nORDER BY time DESC\nLIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "System Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Latest live temperature_C. Development thresholds must be replaced after baseline testing.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "max": 50,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 35
+              },
+              {
+                "color": "red",
+                "value": 45.000001
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 6
+      },
+      "id": 3,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"temperature_C\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 minutes' AND \"temperature_C\" IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Temperature",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Latest live voltage_V. Configure validated voltage limits before using it for status decisions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "max": 15,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 13.5
+              },
+              {
+                "color": "red",
+                "value": 14.5
+              }
+            ]
+          },
+          "unit": "volt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"voltage_V\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 minutes' AND \"voltage_V\" IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Voltage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Latest live current_A. Current limits are configurable development values.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "max": 2,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              },
+              {
+                "color": "yellow",
+                "value": 0.95
+              },
+              {
+                "color": "red",
+                "value": 1.100001
+              }
+            ]
+          },
+          "unit": "amp"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"current_A\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 minutes' AND \"current_A\" IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Current",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Latest live power_W. Configure validated power limits before using it for status decisions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "max": 25,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 18
+              },
+              {
+                "color": "red",
+                "value": 22
+              }
+            ]
+          },
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "id": 6,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"power_W\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 minutes' AND \"power_W\" IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Power",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Recent temperature_C data for the selected device. Legend includes the current (last non-null) value.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#38D7E7",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Temperature (°C)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"temperature_C\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND $__timeFilter(time) AND \"temperature_C\" IS NOT NULL ORDER BY time",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Temperature Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Recent current_A data for the selected device. Legend includes the current (last non-null) value.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FFB000",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Current (A)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "unit": "amp"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"current_A\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND $__timeFilter(time) AND \"current_A\" IS NOT NULL ORDER BY time",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Current Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Recent power_W data for the selected device. Legend includes the current (last non-null) value.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#73E35B",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Power (W)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"power_W\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND $__timeFilter(time) AND \"power_W\" IS NOT NULL ORDER BY time",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Power Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Prominent current alert state. Production status should be derived from validated limits or an alert-state measurement.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "-1": {
+                  "color": "dark-red",
+                  "index": 3,
+                  "text": "Telemetry stale / offline"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0,
+                "result": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Critical alert active"
+                },
+                "to": 49.999
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50,
+                "result": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "Warning active — investigate"
+                },
+                "to": 79.999
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 80,
+                "result": {
+                  "color": "green",
+                  "index": 2,
+                  "text": "No active alerts"
+                },
+                "to": 100
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 7,
+        "x": 0,
+        "y": 20
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "WITH latest AS (\n  SELECT time, \"condition_status\"\n  FROM \"fan_condition\"\n  WHERE \"deviceId\" = '${device_id}'\n  ORDER BY time DESC\n  LIMIT 1\n), scored AS (\n  SELECT time,\n    CASE\n      WHEN time < now() - INTERVAL '${stale_timeout_seconds} seconds' THEN -1.0\n      WHEN \"condition_status\" = 'NORMAL' THEN 92.0\n      WHEN \"condition_status\" = 'WARNING' THEN 65.0\n      WHEN \"condition_status\" = 'CRITICAL' THEN 25.0\n      ELSE -1.0\n    END AS state\n  FROM latest\n)\nSELECT time, state FROM scored\nUNION ALL\nSELECT TIMESTAMP '1970-01-01 00:00:00', -1.0\nORDER BY time DESC\nLIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Alerts (Current)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Example history layout. Replace with a persistent events measurement, Grafana annotations, or alert-state history when the live source is available.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 86
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 0,
+                        "text": "⚠ Warning"
+                      },
+                      "Resolved": {
+                        "color": "green",
+                        "index": 1,
+                        "text": "✓ Resolved"
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 2,
+                        "text": "● Critical"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "When"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 94
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 7,
+        "x": 0,
+        "y": 23
+      },
+      "id": 11,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"event_id\", \"event_state\", \"condition\", \"suspected_fault\", \"diagnostic_evidence\", \"severity\", \"fmeca_rpn\", \"maintenance_priority\", \"recommended_action\", \"started_at\", \"resolved_at\" FROM \"fan_condition_events\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '30 days' ORDER BY time DESC LIMIT 50",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Alerts (History)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Explainable weighted score emitted by the Raspberry Pi. No score is returned when telemetry is stale.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 4,
+        "x": 7,
+        "y": 20
+      },
+      "id": 12,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time, \"health_score\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' AND time >= now() - INTERVAL '${stale_timeout_seconds} seconds' AND \"health_score\" IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Asset Health Score",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Live action generated from condition, diagnosis and FMECA results, with a stale-data fallback.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "from": 0,
+                "result": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Critical condition detected. Stop the fan safely and inspect the system before restart."
+                },
+                "to": 49.999
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50,
+                "result": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "Inspect the fan due to an approaching limit. Check the affected measurement and trend."
+                },
+                "to": 79.999
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 80,
+                "result": {
+                  "color": "green",
+                  "index": 2,
+                  "text": "System operating normally. Continue monitoring."
+                },
+                "to": 100
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 7,
+        "x": 11,
+        "y": 20
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "WITH latest AS (\n  SELECT time, \"recommended_action\"\n  FROM \"fan_condition\"\n  WHERE \"deviceId\" = '${device_id}'\n  ORDER BY time DESC\n  LIMIT 1\n), action AS (\n  SELECT time,\n    CASE\n      WHEN time < now() - INTERVAL '${stale_timeout_seconds} seconds' THEN 'No recent telemetry received. Check Raspberry Pi, sensors and network connectivity.'\n      ELSE \"recommended_action\"\n    END AS recommended_action\n  FROM latest\n)\nSELECT time, recommended_action FROM action\nUNION ALL\nSELECT TIMESTAMP '1970-01-01 00:00:00', 'No recent telemetry received. Check Raspberry Pi, sensors and network connectivity.'\nORDER BY time DESC\nLIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Recommended Action",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "iiot-influxdb"
+      },
+      "description": "Live device identifier and timestamp of the latest stored monitoring record.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Item"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 20
+      },
+      "id": 14,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "iiot-influxdb"
+          },
+          "query": "SELECT time AS \"Last update\", \"deviceId\" AS \"Device ID\" FROM \"fan_condition\" WHERE \"deviceId\" = '${device_id}' ORDER BY time DESC LIMIT 1",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table"
+        }
+      ],
+      "title": "Device Information",
+      "type": "table"
+    },
+    {
+      "description": "Key for the presentation colors. All numeric values shown are editable demonstration defaults, not certified operating limits.",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 25
+      },
+      "id": 15,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "🟢 **Normal** — temperature < 35 °C; current 0.50–<0.95 A  \n🟡 **Warning** — temperature 35–45 °C; current 0.95–1.10 A  \n🔴 **Critical** — temperature > 45 °C; current > 1.10 A  \n⚫ **Offline** — no telemetry within 30 seconds  \n\n*Development values—validate after baseline testing.*",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.0.0",
+      "title": "Thresholds (Key)",
+      "type": "text"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "iiot",
+    "condition-monitoring",
+    "fan",
+    "dissertation"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "fan-monitor-pi",
+          "value": "fan-monitor-pi"
+        },
+        "description": "Device identifier used by all live InfluxDB query filters.",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Device",
+        "multi": false,
+        "name": "device_id",
+        "options": [
+          {
+            "selected": true,
+            "text": "fan-monitor-pi",
+            "value": "fan-monitor-pi"
+          }
+        ],
+        "query": "fan-monitor-pi",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "30",
+          "value": "30"
+        },
+        "description": "Stale-data timeout in seconds.",
+        "hide": 2,
+        "label": "Stale timeout",
+        "name": "stale_timeout_seconds",
+        "query": "30",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "35",
+          "value": "35"
+        },
+        "description": "Illustrative temperature warning threshold in °C. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Temperature warning",
+        "name": "temp_warning",
+        "query": "35",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "45",
+          "value": "45"
+        },
+        "description": "Illustrative temperature critical threshold in °C. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Temperature critical",
+        "name": "temp_critical",
+        "query": "45",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "13.5",
+          "value": "13.5"
+        },
+        "description": "Illustrative voltage warning threshold in V. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Voltage warning",
+        "name": "voltage_warning",
+        "query": "13.5",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "14.5",
+          "value": "14.5"
+        },
+        "description": "Illustrative voltage critical threshold in V. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Voltage critical",
+        "name": "voltage_critical",
+        "query": "14.5",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "0.95",
+          "value": "0.95"
+        },
+        "description": "Illustrative current warning threshold in A. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Current warning",
+        "name": "current_warning",
+        "query": "0.95",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "1.10",
+          "value": "1.10"
+        },
+        "description": "Illustrative current critical threshold in A. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Current critical",
+        "name": "current_critical",
+        "query": "1.10",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "18",
+          "value": "18"
+        },
+        "description": "Illustrative power warning threshold in W. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Power warning",
+        "name": "power_warning",
+        "query": "18",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "22",
+          "value": "22"
+        },
+        "description": "Illustrative power critical threshold in W. Replace with a validated project value.",
+        "hide": 2,
+        "label": "Power critical",
+        "name": "power_critical",
+        "query": "22",
+        "skipUrlSync": true,
+        "type": "constant"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Fan Condition Monitoring Dashboard",
+  "uid": "fan-condition-monitoring",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,120 @@
+# DEVELOPMENT FMECA VALUES ONLY.
+# Severity, occurrence and detectability use a provisional 1-10 scale and must
+# be reviewed with project evidence before they are treated as validated.
+failure_modes:
+  - key: fan_imbalance
+    failure_mode: Possible fan imbalance
+    description: Uneven rotating mass may produce periodic vibration.
+    possible_causes: [dirt accumulation, damaged blade, uneven blade loading]
+    observable_effects: [elevated periodic vibration, reduced mechanical stability]
+    sensor_indicators: [vibration_rms_g, vibration_peak_g, shaft_frequency_Hz, rpm, blade_pass_frequency_Hz, dominant_frequency_Hz]
+    severity: 6
+    occurrence: 4
+    detectability: 3
+    risk_priority_number: 72
+    recommended_action: Inspect fan blades and balance. Check for dirt, damage or uneven loading.
+    maintenance_priority: MEDIUM
+
+  - key: mechanical_looseness
+    failure_mode: Suspected mechanical looseness
+    description: Loose mounting can cause shocks and broadband vibration.
+    possible_causes: [loose fasteners, degraded mount, poor mechanical support]
+    observable_effects: [impact vibration, excessive vibration peaks, noise]
+    sensor_indicators: [vibration_peak_g, crest_factor, kurtosis]
+    severity: 7
+    occurrence: 4
+    detectability: 3
+    risk_priority_number: 84
+    recommended_action: Inspect mounting points and tighten loose mechanical connections.
+    maintenance_priority: HIGH
+
+  - key: bearing_degradation
+    failure_mode: Possible bearing degradation
+    description: Bearing wear may create impact-type vibration and increased load.
+    possible_causes: [wear, contamination, lubrication loss]
+    observable_effects: [rough vibration, impacts, rising current, heat]
+    sensor_indicators: [kurtosis, crest_factor, vibration_rms_g, current_A, temperature_C]
+    severity: 8
+    occurrence: 4
+    detectability: 4
+    risk_priority_number: 128
+    recommended_action: Inspect bearing condition and plan maintenance before further degradation.
+    maintenance_priority: HIGH
+
+  - key: airflow_restriction
+    failure_mode: Possible airflow restriction
+    description: Restricted airflow can increase temperature and reduce cooling performance.
+    possible_causes: [blocked inlet, blocked outlet, dirt buildup, obstructed duct]
+    observable_effects: [elevated temperature, reduced airflow, possible load change]
+    sensor_indicators: [temperature_C, current_A, power_W]
+    severity: 6
+    occurrence: 4
+    detectability: 5
+    risk_priority_number: 120
+    recommended_action: Inspect the airflow path and remove blockage or contamination.
+    maintenance_priority: HIGH
+
+  - key: motor_fan_overload
+    failure_mode: Elevated electrical load
+    description: Increased mechanical resistance may overload the motor/fan.
+    possible_causes: [obstruction, bearing drag, blade contact, excessive system resistance]
+    observable_effects: [high current, high power, heat, reduced speed]
+    sensor_indicators: [current_A, power_W, temperature_C, vibration_rms_g]
+    severity: 8
+    occurrence: 4
+    detectability: 3
+    risk_priority_number: 96
+    recommended_action: Inspect fan loading, obstruction and mechanical resistance before continued operation.
+    maintenance_priority: HIGH
+
+  - key: overheating
+    failure_mode: Overheating
+    description: Fan or surrounding system temperature exceeds the configured development range.
+    possible_causes: [airflow restriction, electrical overload, ambient heat, bearing friction]
+    observable_effects: [elevated temperature, accelerated component ageing]
+    sensor_indicators: [temperature_C, current_A, power_W]
+    severity: 8
+    occurrence: 3
+    detectability: 2
+    risk_priority_number: 48
+    recommended_action: Inspect airflow and thermal condition. Stop safely if the critical limit is exceeded.
+    maintenance_priority: HIGH
+
+  - key: power_supply_abnormality
+    failure_mode: Power supply abnormality
+    description: Supply voltage is outside a configured acceptable band.
+    possible_causes: [supply fault, wiring resistance, loose electrical connection]
+    observable_effects: [unstable speed, high current, intermittent operation]
+    sensor_indicators: [voltage_V, current_A, power_W]
+    severity: 7
+    occurrence: 3
+    detectability: 3
+    risk_priority_number: 63
+    recommended_action: Inspect the 12 V supply, wiring and electrical connections.
+    maintenance_priority: MEDIUM
+
+  - key: sensor_failure
+    failure_mode: Sensor fault
+    description: One or more sensor values are unavailable or invalid.
+    possible_causes: [disconnected sensor, SPI, I2C or 1-Wire error, invalid conversion]
+    observable_effects: [missing telemetry fields, unreliable condition assessment]
+    sensor_indicators: [sensor_errors, missing_fields]
+    severity: 7
+    occurrence: 3
+    detectability: 2
+    risk_priority_number: 42
+    recommended_action: Inspect Raspberry Pi sensor wiring, interfaces and sensor health.
+    maintenance_priority: HIGH
+
+  - key: communication_failure
+    failure_mode: Communications / telemetry fault
+    description: Recent telemetry is unavailable beyond the configured stale timeout.
+    possible_causes: [Raspberry Pi offline, application stopped, network loss, database failure]
+    observable_effects: [stale dashboard, unavailable health assessment]
+    sensor_indicators: [timestamp, telemetry_age_seconds]
+    severity: 8
+    occurrence: 3
+    detectability: 2
+    risk_priority_number: 48
+    recommended_action: No recent telemetry received. Check Raspberry Pi, sensors and network connectivity.
+    maintenance_priority: HIGH

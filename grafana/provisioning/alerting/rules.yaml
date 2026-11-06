@@ -1,0 +1,227 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Fan condition monitoring
+    folder: IIoT Monitoring
+    interval: 10s
+    rules:
+      - uid: fan-metric-warning
+        title: Fan metric warning
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 60, to: 0}
+            datasourceUid: iiot-influxdb
+            model:
+              datasource: {type: influxdb, uid: iiot-influxdb}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              rawQuery: true
+              resultFormat: time_series
+              query: >-
+                SELECT time, "temperature_status_code", "current_status_code",
+                  "vibration_rms_status_code", "vibration_peak_status_code",
+                  "crest_factor_status_code", "kurtosis_status_code",
+                  "shaft_frequency_status_code"
+                FROM "fan_condition"
+                WHERE "deviceId" = '${DEVICE_ID}'
+                  AND time >= now() - INTERVAL '60 seconds'
+                ORDER BY time DESC LIMIT 1
+              refId: A
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              reducer: last
+              type: reduce
+              refId: B
+          - refId: C
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: $B > 0.5 && $B < 1.5
+              type: math
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 30s
+        annotations:
+          summary: Fan warning condition persisted for 30 seconds
+          description: Multi-dimensional warning for temperature, current, vibration RMS, vibration peak, Vibration Spike Level, Vibration Impact Level and configured shaft frequency. The field label identifies the trigger.
+        labels: {asset: fan-monitor, severity: warning}
+        isPaused: false
+
+      - uid: fan-metric-critical
+        title: Fan metric critical
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 60, to: 0}
+            datasourceUid: iiot-influxdb
+            model:
+              datasource: {type: influxdb, uid: iiot-influxdb}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              rawQuery: true
+              resultFormat: time_series
+              query: >-
+                SELECT time, "temperature_status_code", "current_status_code",
+                  "vibration_rms_status_code", "vibration_peak_status_code",
+                  "crest_factor_status_code", "kurtosis_status_code",
+                  "shaft_frequency_status_code"
+                FROM "fan_condition"
+                WHERE "deviceId" = '${DEVICE_ID}'
+                  AND time >= now() - INTERVAL '60 seconds'
+                ORDER BY time DESC LIMIT 1
+              refId: A
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              reducer: last
+              type: reduce
+              refId: B
+          - refId: C
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: B
+              conditions:
+                - evaluator: {params: [1.5], type: gt}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {params: [], type: last}
+                  type: query
+              type: threshold
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 10s
+        annotations:
+          summary: Critical fan metric condition
+          description: Critical application-evaluated condition. The field label identifies temperature, current or vibration trigger.
+        labels: {asset: fan-monitor, severity: critical}
+        isPaused: false
+
+      - uid: fan-overall-diagnostic
+        title: Significant diagnosed fan condition
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 60, to: 0}
+            datasourceUid: iiot-influxdb
+            model:
+              datasource: {type: influxdb, uid: iiot-influxdb}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              rawQuery: true
+              resultFormat: time_series
+              query: >-
+                SELECT time, "condition_code"
+                FROM "fan_condition"
+                WHERE "deviceId" = '${DEVICE_ID}'
+                  AND time >= now() - INTERVAL '60 seconds'
+                  AND "condition_code" IS NOT NULL
+                ORDER BY time DESC LIMIT 1
+              refId: A
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              reducer: last
+              type: reduce
+              refId: B
+          - refId: C
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: B
+              conditions:
+                - evaluator: {params: [0.5], type: gt}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {params: [], type: last}
+                  type: query
+              type: threshold
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 30s
+        annotations:
+          summary: Fan diagnosis requires attention
+          description: Overall rule-based condition is WARNING or CRITICAL. Inspect dashboard evidence and FMECA action.
+        labels: {asset: fan-monitor, severity: diagnostic}
+        isPaused: false
+
+      - uid: fan-telemetry-stale
+        title: Fan telemetry stale or offline
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 300, to: 0}
+            datasourceUid: iiot-influxdb
+            model:
+              datasource: {type: influxdb, uid: iiot-influxdb}
+              intervalMs: 1000
+              maxDataPoints: 43200
+              rawQuery: true
+              resultFormat: time_series
+              query: >-
+                WITH latest AS (
+                  SELECT time
+                  FROM "fan_condition"
+                  WHERE "deviceId" = '${DEVICE_ID}'
+                  ORDER BY time DESC
+                  LIMIT 1
+                ), freshness AS (
+                  SELECT time,
+                    CASE WHEN time < now() - INTERVAL '${STALE_TIMEOUT_SECONDS} seconds'
+                      THEN 1.0 ELSE 0.0 END AS stale
+                  FROM latest
+                )
+                SELECT time, stale FROM freshness
+                UNION ALL
+                SELECT TIMESTAMP '1970-01-01 00:00:00', 1.0
+                ORDER BY time DESC LIMIT 1
+              refId: A
+          - refId: B
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: A
+              reducer: last
+              type: reduce
+              refId: B
+          - refId: C
+            relativeTimeRange: {from: 0, to: 0}
+            datasourceUid: __expr__
+            model:
+              datasource: {type: __expr__, uid: __expr__}
+              expression: B
+              conditions:
+                - evaluator: {params: [0.5], type: gt}
+                  operator: {type: and}
+                  query: {params: [C]}
+                  reducer: {params: [], type: last}
+                  type: query
+              type: threshold
+              refId: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 10s
+        annotations:
+          summary: No recent fan telemetry
+          description: No monitoring point has arrived within the 30-second stale-data timeout. Check Raspberry Pi, sensors, application, network and InfluxDB.
+        labels: {asset: fan-monitor, severity: offline}
+        isPaused: false

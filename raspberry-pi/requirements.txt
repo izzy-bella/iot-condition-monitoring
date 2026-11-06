@@ -1,0 +1,7 @@
+azure-iot-device
+influxdb-client
+numpy
+python-dotenv
+PyYAML
+smbus2
+spidev

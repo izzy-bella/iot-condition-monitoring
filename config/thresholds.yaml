@@ -1,0 +1,77 @@
+# DEVELOPMENT / TEST THRESHOLDS ONLY.
+# Replace with limits justified by component specifications and baseline tests.
+stale_timeout_seconds: 30
+
+temperature_C:
+  warning_high: 35.0
+  critical_high: 45.0
+
+current_A:
+  normal_low: 0.50
+  warning_high: 0.95
+  critical_high: 1.10
+  evaluate_low_only_when_fan_expected_running: true
+
+# Intentionally unset until supply and fan baselines are confirmed.
+voltage_V:
+  warning_low: null
+  critical_low: null
+  warning_high: null
+  critical_high: null
+
+power_W:
+  warning_high: null
+  critical_high: null
+
+# Intentionally unset: configure these after collecting labelled baseline data.
+vibration_rms_g:
+  warning_high: null
+  critical_high: null
+
+vibration_peak_g:
+  warning_high: null
+  critical_high: null
+
+crest_factor:
+  warning_high: null
+  critical_high: null
+
+kurtosis:
+  warning_high: null
+  critical_high: null
+
+dominant_frequency_Hz:
+  warning_low: null
+  critical_low: null
+  warning_high: null
+  critical_high: null
+
+# Rotational-speed development limits can be set after loaded and unloaded
+# baseline runs confirm the expected fan-speed band.
+shaft_frequency_Hz:
+  warning_low: null
+  critical_low: null
+  warning_high: null
+  critical_high: null
+
+vibration_trend:
+  window_count: 6
+  warning_fraction_increase: null
+  critical_fraction_increase: null
+
+health_score:
+  component_weights:
+    temperature: 0.25
+    electrical: 0.25
+    vibration: 0.25
+    diagnostic: 0.15
+    availability: 0.10
+  status_scores:
+    NORMAL: 100
+    WARNING: 65
+    CRITICAL: 20
+  missing_sensor_score: 35
+  diagnostic_scores:
+    NORMAL: 100
+    WARNING: 60
+    CRITICAL: 15

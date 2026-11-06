@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: Fan Condition Monitoring
+    orgId: 1
+    folder: IIoT Monitoring
+    folderUid: iiot-monitoring
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards/fan-condition-monitoring
+      foldersFromFilesStructure: false
